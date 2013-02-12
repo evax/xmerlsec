@@ -1,0 +1,8 @@
+{application, xmerlsec,
+ [
+  {description, "xmlsec Erlang bindings"},
+  {vsn, git},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {env, []}
+ ]}.
