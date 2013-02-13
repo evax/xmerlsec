@@ -2,7 +2,7 @@
 
 -export([keysmngr_create/0,
          keysmngr_destroy/1,
-         keysmngr_add_key/2,
+         keysmngr_add_key_and_cert/3,
          keysmngr_add_cert/2,
          sign/2, verify/2]).
 
@@ -25,7 +25,7 @@ keysmngr_create() ->
 keysmngr_destroy(_) ->
     throw({?MODULE, nif_not_loaded}).
 
-keysmngr_add_key(_,_) ->
+keysmngr_add_key_and_cert(_,_,_) ->
     throw({?MODULE, nif_not_loaded}).
 
 keysmngr_add_cert(_,_) ->

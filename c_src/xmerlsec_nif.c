@@ -55,7 +55,7 @@ static ERL_NIF_TERM keysmngr_destroy(ErlNifEnv *env, int argc,
     return enif_make_atom(env, "ok");
 }
 
-static ERL_NIF_TERM keysmngr_add_key(ErlNifEnv *env, int argc,
+static ERL_NIF_TERM keysmngr_add_key_and_cert(ErlNifEnv *env, int argc,
                                      const ERL_NIF_TERM argv[])
 {
     xmerlsec_keysmngr_t* mngr;
@@ -65,6 +65,10 @@ static ERL_NIF_TERM keysmngr_add_key(ErlNifEnv *env, int argc,
     }
     ErlNifBinary keyFile;
     if (!enif_inspect_binary(env, argv[1], &keyFile)) {
+        return enif_make_badarg(env);
+    }
+    ErlNifBinary certFile;
+    if (!enif_inspect_binary(env, argv[2], &certFile)) {
         return enif_make_badarg(env);
     }
     xmlSecKeyPtr key;
@@ -77,6 +81,11 @@ static ERL_NIF_TERM keysmngr_add_key(ErlNifEnv *env, int argc,
     if (xmlSecKeySetName(key, BAD_CAST keyFile.data) < 0) {
         xmlSecKeyDestroy(key);
         return ERROR_TUPLE(env, "key_setname");
+    }
+    if (xmlSecCryptoAppKeyCertLoad(key, (const char*)certFile.data,
+                                   xmlSecKeyDataFormatPem) < 0) {
+        xmlSecKeyDestroy(key);
+        return ERROR_TUPLE(env, "key_register_cert");
     }
     if (xmlSecCryptoAppDefaultKeysMngrAdoptKey(mngr->mngr, key) < 0) {
         xmlSecKeyDestroy(key);
@@ -97,9 +106,9 @@ static ERL_NIF_TERM keysmngr_add_cert(ErlNifEnv *env, int argc,
     if (!enif_inspect_binary(env, argv[1], &certFile)) {
         return enif_make_badarg(env);
     }
-    if (!xmlSecCryptoAppKeysMngrCertLoad(mngr->mngr, (const char*)certFile.data,
-                                         xmlSecKeyDataFormatPem,
-                                         xmlSecKeyDataTypeTrusted)) {
+    if (xmlSecCryptoAppKeysMngrCertLoad(mngr->mngr, (const char*)certFile.data,
+                                        xmlSecKeyDataFormatPem,
+                                        xmlSecKeyDataTypeTrusted) < 0) {
         return ERROR_TUPLE(env, "cert_load");
     }
     return enif_make_atom(env, "ok");
@@ -317,7 +326,7 @@ static ErlNifFunc funcs[] =
     {
         {"keysmngr_create", 0, keysmngr_create},
         {"keysmngr_destroy", 1, keysmngr_destroy},
-        {"keysmngr_add_key", 2, keysmngr_add_key},
+        {"keysmngr_add_key_and_cert", 3, keysmngr_add_key_and_cert},
         {"keysmngr_add_cert", 2, keysmngr_add_cert},
         {"sign", 2, sign},
         {"verify", 2, verify}
