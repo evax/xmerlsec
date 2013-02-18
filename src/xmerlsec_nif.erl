@@ -4,7 +4,7 @@
          keysmngr_destroy/1,
          keysmngr_add_key_and_cert/3,
          keysmngr_add_cert/2,
-         sign/2, verify/2]).
+         sign/4, verify/4]).
 
 -on_load(load/0).
 -spec load() -> any().
@@ -31,9 +31,9 @@ keysmngr_add_key_and_cert(_,_,_) ->
 keysmngr_add_cert(_,_) ->
     throw({?MODULE, nif_not_loaded}).
 
-sign(_, _) ->
+sign(_, _, _, _) ->
     throw({?MODULE, nif_not_loaded}).
 
-verify(_,_) ->
+verify(_,_, _, _) ->
     throw({?MODULE, nif_not_loaded}).
 

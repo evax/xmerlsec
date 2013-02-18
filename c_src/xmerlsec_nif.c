@@ -121,8 +121,16 @@ static ERL_NIF_TERM sign(ErlNifEnv *env, int argc,
     if (!enif_inspect_binary(env, argv[0], &xmlSrc)) {
         return enif_make_badarg(env);
     }
+    ErlNifBinary element;
+    if (!enif_inspect_binary(env, argv[1], &element)) {
+        return enif_make_badarg(env);
+    }
+    ErlNifBinary elemNS;
+    if (!enif_inspect_binary(env, argv[2], &elemNS)) {
+        return enif_make_badarg(env);
+    }
     xmerlsec_keysmngr_t* mngr;
-    if (!enif_get_resource(env, argv[1], xmerlsec_nif_resource_keysmngr,
+    if (!enif_get_resource(env, argv[3], xmerlsec_nif_resource_keysmngr,
                            (void **)&mngr)) {
         return enif_make_badarg(env);
     }
@@ -138,8 +146,8 @@ static ERL_NIF_TERM sign(ErlNifEnv *env, int argc,
     }
     xmlNodePtr assertionNode =
         xmlSecFindNode(xmlDocGetRootElement(doc),
-                       BAD_CAST "Assertion",
-                       BAD_CAST "urn:oasis:names:tc:SAML:2.0:assertion");
+                       BAD_CAST element.data,
+                       BAD_CAST elemNS.data);
     xmlAttrPtr attr = xmlHasProp(assertionNode, BAD_CAST "ID");
     xmlChar* id = xmlGetProp(assertionNode, BAD_CAST "ID");
     xmlAddID(NULL, doc, id, attr);
@@ -216,8 +224,16 @@ static ERL_NIF_TERM verify(ErlNifEnv *env, int argc,
     if (!enif_inspect_binary(env, argv[0], &xmlSrc)) {
         return enif_make_badarg(env);
     }
+    ErlNifBinary element;
+    if (!enif_inspect_binary(env, argv[1], &element)) {
+        return enif_make_badarg(env);
+    }
+    ErlNifBinary elemNS;
+    if (!enif_inspect_binary(env, argv[2], &elemNS)) {
+        return enif_make_badarg(env);
+    }
     xmerlsec_keysmngr_t* mngr;
-    if (!enif_get_resource(env, argv[1], xmerlsec_nif_resource_keysmngr,
+    if (!enif_get_resource(env, argv[3], xmerlsec_nif_resource_keysmngr,
                            (void **)&mngr)) {
         return enif_make_badarg(env);
     }
@@ -230,8 +246,8 @@ static ERL_NIF_TERM verify(ErlNifEnv *env, int argc,
     }
     xmlNodePtr assertionNode =
         xmlSecFindNode(xmlDocGetRootElement(doc),
-                       BAD_CAST "Assertion",
-                       BAD_CAST "urn:oasis:names:tc:SAML:2.0:assertion");
+                       BAD_CAST element.data,
+                       BAD_CAST elemNS.data);
     xmlAttrPtr attr = xmlHasProp(assertionNode, BAD_CAST "ID");
     xmlChar* id = xmlGetProp(assertionNode, BAD_CAST "ID");
     xmlAddID(NULL, doc, id, attr);
@@ -256,7 +272,7 @@ static ERL_NIF_TERM verify(ErlNifEnv *env, int argc,
                                 "true" : "false");
     xmlSecDSigCtxDestroy(dsigCtx);
     xmlFreeDoc(doc);
-    return out;
+    return OK_TUPLE(env, out);
 }
 
 static int load(ErlNifEnv *env, void **priv, ERL_NIF_TERM info)
@@ -328,8 +344,8 @@ static ErlNifFunc funcs[] =
         {"keysmngr_destroy", 1, keysmngr_destroy},
         {"keysmngr_add_key_and_cert", 3, keysmngr_add_key_and_cert},
         {"keysmngr_add_cert", 2, keysmngr_add_cert},
-        {"sign", 2, sign},
-        {"verify", 2, verify}
+        {"sign", 4, sign},
+        {"verify", 4, verify}
     };
 
 ERL_NIF_INIT(xmerlsec_nif, funcs, &load, &reload, &upgrade, &unload);

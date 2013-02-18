@@ -1,0 +1,5 @@
+<ns:test ID="test" xmlns:ns="http://test.com">
+<content>
+    Test
+</content>
+</ns:test>
